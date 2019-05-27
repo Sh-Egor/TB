@@ -1,0 +1,4 @@
+set terminal png
+set output 'FGroup.png'
+set yrange [0:1.1]
+plot "FGroup.txt" u 2:1 w l lw 4

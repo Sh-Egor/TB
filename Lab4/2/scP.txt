@@ -1,0 +1,4 @@
+set terminal png
+set output "polygon.png"
+set yrange [0:1]
+plot "./P.txt" u 2:1 w l lw 4
