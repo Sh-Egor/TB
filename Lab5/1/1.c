@@ -141,7 +141,7 @@ genDigParam(struct dpoint* mas, int n)
 	}
 	x /= sum;
 	D /= sum;
-	D -= x;
+	D -= x*x;
 	sig = sqrt(D);
 	S = D*(sum-1)/sum;
 	fprintf(out, "X выборочное = %- -.3lf\n",x);
