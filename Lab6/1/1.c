@@ -10,6 +10,7 @@ struct dpoint{
 	double cent;
 	int n;
 	double f;
+	double pbin;
 };	
 
 void
@@ -188,7 +189,7 @@ genPolDataAbs(struct dpoint* mas, int n)
 }
 
 void
-genScr(double a, double b, int y)
+genScr(double a, double b, int y, int tmp2)
 {
 	FILE* scr = fopen("scr_1.txt","w");
 	fprintf(scr, "set terminal png\n");
@@ -196,19 +197,58 @@ genScr(double a, double b, int y)
 	fprintf(scr, "set xrange [%lf:%lf]\n",a,b);
 	fprintf(scr, "set yrange [0:%ld]\n",y);
 	fprintf(scr, "set multiplot\n");
-	fprintf(scr, "plot \"Abs.txt\" u 2:1 w l lw 4\n");
+	if(tmp2)
+		fprintf(scr, "plot \"Abs.txt\" u 2:1 w l lw 4\n");
 	fprintf(scr, "plot \"Abskr.txt\" u 2:1 w l lw 4 lt rgb 'red'\n");
 	fclose(scr);
 }
 
 void
-genScrN(double a, double sig)
+genScrN(double a, double sig, double x, double y)
 {
 	FILE* scr = fopen("scr_2.txt","w");
 	fprintf(scr, "set terminal png\n");
 	fprintf(scr, "set output 'Abs1.png'\n");
+	fprintf(scr, "set xrange [%lf:%lf]\n",x,y);
 	fprintf(scr, "plot 1/(sqrt(2*pi)*%lf)*exp(-(x-%lf)**2/(2*%lf**2)) lw 4 lt rgb 'red'",sig,a,sig);
 	fclose(scr);
+}
+
+void
+swap(struct dpoint* mas, int i, int j)
+{
+	struct dpoint tmp = mas[i];
+	mas[i] = mas[j];
+	mas[j] = tmp;
+}
+
+void
+sort(struct dpoint* mas, int n)
+{
+	for (int i = 0; i < n-1; i++){
+		for (int j = i+1; j < n; j++){
+			if (mas[j].cent < mas[i].cent){
+				swap(mas,i,j);
+			}
+		}
+	}
+}
+
+void
+genPiData(struct dpoint* mas, int n, double* p, int tmp2)
+{
+	FILE* out = fopen("Pi.txt","w");
+	if(tmp2){
+		for(int i = 0; i < n; i++){
+			fprintf(out, "(%.3lf, %.3lf) | %.3lf\n",mas[i].a,mas[i].b,p[i]);
+		}
+	}else{
+		for(int i = 0; i < n; i++){
+			fprintf(out, "%.3lf | %.3lf\n",mas[i].cent,p[i]);
+		}
+	}
+	fclose(out);
+	system("subl Pi.txt");
 }
 
 void
@@ -220,8 +260,6 @@ CheckNorm(struct dpoint* mas, int n, double a, int tmp2)
 	double x = 0.0;
 	double D = 0.0;
 	double sig = 0.0;
-	double S2 = 0.0;
-	double s = 0.0;
 	int sum = 0;
 	int mx = 0;
 	for(int i = 0; i < n; i++){
@@ -236,10 +274,11 @@ CheckNorm(struct dpoint* mas, int n, double a, int tmp2)
 	D /= sum;
 	D -= x*x;
 	sig = sqrt(D);
-	S2 = D*sum/(sum-1);
-	s = sqrt(S2);
-	printf("x is %.3lf\n",x);
-	printf("s is %.3lf\n",s);
+	printf("Xв = sum(XiNi)/N,(i=1,%ld) = %.3lf\n",n,x);
+	printf("Dв = sum(Xi^2Ni)/N - Xв^2,(i=1,%ld) = %.3lf\n",n,D);
+	printf("sig = sqrt(Dв) = %.3lf\n\n",sig);
+	printf("Предположительное мат ожидание = %.3lf\n",x);
+	printf("Предположительное ср.кв отклонение = %.3lf\n",sig);
 	if(tmp2){
 		p[0] = F0((mas[0].b-x)/sig) + 0.5;
 		for(int i = 1; i < n-1; i++){
@@ -262,24 +301,55 @@ CheckNorm(struct dpoint* mas, int n, double a, int tmp2)
 	printf("X2: %.5lf\n",X2);
 	double sr = GetXiSq(a,n-3);
 	printf("xi(table) %.5lf\n",sr);
-	genGistDataAbs(mas,n);
+	if(tmp2)
+		genGistDataAbs(mas,n);
 	genPolDataAbs(mas,n);
-	genScr(mas[0].a,mas[n-1].b,mx);
-	genScrN(x,sig);
+	if(tmp2)
+		genScr(mas[0].a,mas[n-1].b,mx,tmp2);
+	else
+		genScr(mas[0].cent,mas[n-1].cent,mx,tmp2);
+	if(tmp2)
+		genScrN(x,sig,mas[0].a,mas[n-1].b);
+	else
+		genScrN(x,sig,mas[0].cent,mas[n-1].cent);
 	system("gnuplot scr_1.txt");
 	system("gnuplot scr_2.txt");
+	genPiData(mas,n,p,tmp2);
 	if(sr > 0){
 		if(X2 <= sr){
+			printf("X2 <= XiTable\n");
 			printf("Гипотеза подтверждена\n");
 		}else{
+			printf("X2 > XiTable\n");
 			printf("Гипотеза опровергнута\n");
 		}
 	}else{
-		printf("а не найдена в таблице или количество интервалов меньше 4\n");
+		printf("а не найдена в таблице или количество интервалов/точек меньше 4\n");
 	}
 	system("ristretto Abs.png");
 }
 
+void
+CheckBin(struct dpoint* mas, int n, double a, int tmp2)
+{
+	double x = 0.0;
+	double D = 0.0;
+	double sig = 0.0;
+	int sum = 0;
+	int mx = 0;
+	for(int i = 0; i < n; i++){
+		x += mas[i].cent * mas[i].n;
+		D += mas[i].cent * mas[i].n * mas[i].cent;
+		sum += mas[i].n;
+		if(mas[i].n > mx){
+			mx = mas[i].n;
+		}
+	}
+	x /= sum;
+	D /= sum;
+	D -= x*x;
+	sig = sqrt(D);
+}
 int
 main(void)
 {
@@ -305,6 +375,7 @@ main(void)
 	}else{
 		n = generateMas(mas,"data.txt",tmp2);
 	}
+	sort(mas,n);
 	printf("N is %d\n",n);
 	printf("Проверка гипотезы о виде распределения по критерию Пирсона\n");
 	printf("0 - о нормальном распределении\n");
@@ -314,7 +385,7 @@ main(void)
 	double a;
 	scanf("%lf",&a);
 	if (tmp){
-		// CheckBin(mas,n,a);
+		CheckBin(mas,n,a,tmp2);
 	}else{
 		CheckNorm(mas,n,a,tmp2);
 	}

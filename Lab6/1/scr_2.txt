@@ -1,3 +1,4 @@
 set terminal png
 set output 'Abs1.png'
-plot 1/(sqrt(2*pi)*10.535654)*exp(-(x-5.000000)**2/(2*10.535654**2)) lw 4 lt rgb 'red'
+set xrange [0.000000:9.000000]
+plot 1/(sqrt(2*pi)*2.437212)*exp(-(x-3.600000)**2/(2*2.437212**2)) lw 4 lt rgb 'red'

@@ -51,17 +51,9 @@ generateMas(struct dpoint* mas, char* name)
 void
 swap(struct dpoint* mas, int a, int b)
 {
-	double tmp = mas[a].key;
-	int n = mas[a].n;
-	double f = mas[a].f;
-
-	mas[a].key = mas[b].key;
-	mas[a].n = mas[b].n;
-	mas[a].f = mas[b].f;
-
-	mas[b].key = tmp;
-	mas[b].n = n;
-	mas[b].f = f;
+	struct dpoint tmp = mas[a];
+	mas[a] = mas[b];
+	mas[b] = tmp;
 }
 
 //sort mas
