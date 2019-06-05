@@ -133,10 +133,10 @@ genDigParam(struct dpoint* mas, int n)
 	D -= x*x;
 	sig = sqrt(D);
 	S = D*(sum-1)/sum;
-	fprintf(out, "X выборочное = %- -.3lf\n",x);
-	fprintf(out, "D выб = %- -.3lf\n",D);
-	fprintf(out, "среднее кв.отклонение = %- -.3lf\n",sig);
-	fprintf(out, "S = %- -.3lf\n",S);
+	fprintf(out, "X выборочное = %- -.6lf\n",x);
+	fprintf(out, "D выб = %- -.6lf\n",D);
+	fprintf(out, "среднее кв.отклонение = %- -.6lf\n",sig);
+	fprintf(out, "S = %- -.6lf\n",S);
 	fclose(out);
 }
 
