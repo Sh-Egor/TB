@@ -330,11 +330,14 @@ CheckNorm(struct dpoint* mas, int n, double a, int tmp2)
 }
 
 void
-CheckBin(struct dpoint* mas, int n, double a, int tmp2)
+CheckBin(struct dpoint* mas, int n, double a, double cnt, int tmp2)
 {
 	double x = 0.0;
 	double D = 0.0;
 	double sig = 0.0;
+	double np[n];
+	double row[n];
+	double X2 = 0;
 	int sum = 0;
 	int mx = 0;
 	for(int i = 0; i < n; i++){
@@ -349,7 +352,34 @@ CheckBin(struct dpoint* mas, int n, double a, int tmp2)
 	D /= sum;
 	D -= x*x;
 	sig = sqrt(D);
+	double p = x/cnt;
+	double q = -p + 1;
+	for(int i = 0; i < n; i++){
+		mas[i].pbin = tgamma(cnt+1)/(tgamma(cnt-i+1)*tgamma(i+1))*pow(p,i)*pow(q,cnt-i);
+		printf("%.3lf\n",mas[i].pbin);
+	}
+	// reconstr(mas,n,start,finish);
+	for(int i = 0; i < n; i++){
+		np[i] = mas[i].pbin*sum;
+		row[i] = (mas[i].n-np[i])*(mas[i].n-np[i])/np[i];
+		X2 += row[i];
+	}
+	printf("X2: %.5lf\n",X2);
+	double sr = GetXiSq(a,n-3);
+	printf("xi(table) %.5lf\n",sr);
+	if(sr > 0){
+		if(X2 <= sr){
+			printf("X2 <= XiTable\n");
+			printf("Гипотеза подтверждена\n");
+		}else{
+			printf("X2 > XiTable\n");
+			printf("Гипотеза опровергнута\n");
+		}
+	}else{
+		printf("а не найдена в таблице или количество интервалов/точек меньше 4\n");
+	}
 }
+
 int
 main(void)
 {
@@ -385,7 +415,10 @@ main(void)
 	double a;
 	scanf("%lf",&a);
 	if (tmp){
-		CheckBin(mas,n,a,tmp2);
+		double cnt;
+		printf("Введите N - число испытаний\n");
+		scanf("%lf",&cnt);
+		CheckBin(mas,n,a,cnt,tmp2);
 	}else{
 		CheckNorm(mas,n,a,tmp2);
 	}
