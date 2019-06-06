@@ -189,6 +189,26 @@ genPolDataAbs(struct dpoint* mas, int n)
 }
 
 void
+genPolDataAbs1(struct dpoint* mas, int n)
+{
+	FILE* out = fopen("Abskr.txt","w");
+	for (int i = 0; i < n; ++i){
+		fprintf(out, "%.3lf %.3lf\n",mas[i].pbin,mas[i].cent);
+	}
+	fclose(out);
+}
+
+void
+genPolDataRel(struct dpoint* mas, int n)
+{
+	FILE* out = fopen("Absrel.txt","w");
+	for (int i = 0; i < n; ++i){
+		fprintf(out, "%.3lf %.3lf\n",mas[i].f,mas[i].cent);
+	}
+	fclose(out);
+}
+
+void
 genScr(double a, double b, int y, int tmp2)
 {
 	FILE* scr = fopen("scr_1.txt","w");
@@ -211,6 +231,32 @@ genScrN(double a, double sig, double x, double y)
 	fprintf(scr, "set output 'Abs1.png'\n");
 	fprintf(scr, "set xrange [%lf:%lf]\n",x,y);
 	fprintf(scr, "plot 1/(sqrt(2*pi)*%lf)*exp(-(x-%lf)**2/(2*%lf**2)) lw 4 lt rgb 'red'",sig,a,sig);
+	fprintf(scr, "plot \"Abskr.txt\" u 2:1 w l lw 4 lt rgb 'red'\n");
+	fclose(scr);
+}
+
+
+void
+genScrBin(double a, double b)
+{
+	FILE* scr = fopen("scr_bin.txt","w");
+	fprintf(scr, "set terminal png\n");
+	fprintf(scr, "set output 'TeorBin.png'\n");
+	fprintf(scr, "set xrange [%lf:%lf]\n",a,b);
+	// fprintf(scr, "set yrange [0:1]\n");
+	fprintf(scr, "plot \"Abskr.txt\" u 2:1 w l lw 4 lt rgb 'red'\n");
+	fclose(scr);
+}
+
+void
+genScrBinT(double a, double b)
+{
+	FILE* scr = fopen("scr_bint.txt","w");
+	fprintf(scr, "set terminal png\n");
+	fprintf(scr, "set output 'bin.png'\n");
+	fprintf(scr, "set xrange [%lf:%lf]\n",a,b);
+	// fprintf(scr, "set yrange [0:1]\n");
+	fprintf(scr, "plot \"Absrel.txt\" u 2:1 w l lw 4 lt rgb 'red'\n");
 	fclose(scr);
 }
 
@@ -353,10 +399,14 @@ CheckBin(struct dpoint* mas, int n, double a, double cnt, int tmp2)
 	D -= x*x;
 	sig = sqrt(D);
 	double p = x/cnt;
+	printf("p = Хв/N, N - число испытаний\n");
+	printf("Xв = sum(XiNi)/N,(i=1,%ld) = %.3lf\n",n,x);
+	printf("Dв = sum(Xi^2Ni)/N - Xв^2,(i=1,%ld) = %.3lf\n",n,D);
+	printf("sig = sqrt(Dв) = %.3lf\n\n",sig);
+	printf("Pi = C_from_n_by_i * p^i * q^(N-i)\n");
 	double q = -p + 1;
 	for(int i = 0; i < n; i++){
 		mas[i].pbin = tgamma(cnt+1)/(tgamma(cnt-i+1)*tgamma(i+1))*pow(p,i)*pow(q,cnt-i);
-		printf("%.3lf\n",mas[i].pbin);
 	}
 	// reconstr(mas,n,start,finish);
 	for(int i = 0; i < n; i++){
@@ -364,6 +414,13 @@ CheckBin(struct dpoint* mas, int n, double a, double cnt, int tmp2)
 		row[i] = (mas[i].n-np[i])*(mas[i].n-np[i])/np[i];
 		X2 += row[i];
 	}
+	genPolDataAbs1(mas,n);
+	genPolDataRel(mas,n);
+	genScrBin(mas[0].cent,mas[n-1].cent);
+	genScrBinT(mas[0].cent,mas[n-1].cent);
+	system("gnuplot scr_bin.txt");
+	system("gnuplot scr_bint.txt");
+	system("ristretto bin.png");
 	printf("X2: %.5lf\n",X2);
 	double sr = GetXiSq(a,n-3);
 	printf("xi(table) %.5lf\n",sr);
