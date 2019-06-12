@@ -1,4 +1,4 @@
 set terminal png
 set output 'bin.png'
-set xrange [0.000000:8.000000]
+set xrange [0.000000:10.000000]
 plot "Absrel.txt" u 2:1 w l lw 4 lt rgb 'red'

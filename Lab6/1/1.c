@@ -413,6 +413,7 @@ CheckBin(struct dpoint* mas, int n, double a, double cnt, int tmp2)
 		np[i] = mas[i].pbin*sum;
 		row[i] = (mas[i].n-np[i])*(mas[i].n-np[i])/np[i];
 		X2 += row[i];
+		printf("%.3lf\n",mas[i].pbin);
 	}
 	genPolDataAbs1(mas,n);
 	genPolDataRel(mas,n);
@@ -422,7 +423,7 @@ CheckBin(struct dpoint* mas, int n, double a, double cnt, int tmp2)
 	system("gnuplot scr_bint.txt");
 	system("ristretto bin.png");
 	printf("X2: %.5lf\n",X2);
-	double sr = GetXiSq(a,n-3);
+	double sr = GetXiSq(a,n-2);
 	printf("xi(table) %.5lf\n",sr);
 	if(sr > 0){
 		if(X2 <= sr){
